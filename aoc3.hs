@@ -1,5 +1,3 @@
-{-# LANGUAGE StrictData #-}
-
 import Data.Char (digitToInt, toLower)
 import Data.List (foldl')
 import Data.Monoid
@@ -14,14 +12,10 @@ main = do
     Left err -> print err
     Right e -> do
       putStrLn "AOC3 Answer 1:"
-      print $
-        sum $
-          fmap
-            ( \x -> case fst x of
-                Part (v, _) -> v
-                _ -> 0
-            )
-            (partsWithSymbolsTouching $ matrixToEngineList e)
+      let partValue x = case fst x of
+            Part (v, _) -> v
+            _ -> 0
+      print $ sum $ partValue <$> partsWithSymbolsTouching (matrixToEngineList e)
       putStrLn "AOC Answer 2:"
       print $ sum $ gearsWithTwoPartsTouchingRatio $ matrixToEngineList e
 
@@ -50,27 +44,24 @@ getTouchingParts arr el = filter (`neighbor` el) (parts arr)
 
 gears :: [(Engine, Position)] -> [(Engine, Position)]
 gears =
-  filter
-    ( \x -> case fst x of
+  let gear x = case fst x of
         Symbol x -> x == '*'
         _ -> False
-    )
+   in filter gear
 
 parts :: [(Engine, Position)] -> [(Engine, Position)]
 parts =
-  filter
-    ( \x -> case fst x of
+  let part x = case fst x of
         Part (_, _) -> True
         _ -> False
-    )
+   in filter part
 
 symbols :: [(Engine, Position)] -> [(Engine, Position)]
 symbols =
-  filter
-    ( \x -> case fst x of
+  let symbol x = case fst x of
         Symbol _ -> True
         _ -> False
-    )
+   in filter symbol
 
 neighbor :: (Engine, Position) -> (Engine, Position) -> Bool
 neighbor a b =
