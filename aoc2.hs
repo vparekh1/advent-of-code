@@ -1,8 +1,7 @@
 import Data.Char (toLower)
-import Data.Map
 import Data.Monoid
 import Text.Parsec
-import Text.Parsec.String (Parser, parseFromFile)
+import Text.Parsec.Text (Parser, parseFromFile)
 
 -- Main function
 main :: IO ()
@@ -14,7 +13,7 @@ main =
           Left err -> print err
           Right bag -> do
             putStrLn "First aoc2 problem: "
-            print $ sum $ fst <$> Prelude.filter (not . isBiggerThanAny elfBag) bag
+            print $ sum $ fst <$> filter (not . isBiggerThanAny elfBag) bag
             putStrLn "Second aoc2 problem:"
             print $ sum $ bagPower . minBag <$> bag
 
@@ -43,22 +42,19 @@ toBag xs =
 -- Parsing
 aocFile :: Parser [(Int, [Bag])]
 aocFile = do
-  x <- aocLine `endBy` char '\n'
+  x <- aocLine `endBy` endOfLine
   eof
   return x
 
 aocLine :: Parser (Int, [Bag])
 aocLine = do
-  many space
   gi <- gameId
-  many space
   bagi <- (bagNum `sepBy` char ',') `sepBy` char ';'
   return (gi, toBag <$> bagi)
 
 gameId :: Parser Int
 gameId = do
-  many space
-  string "Game "
+  many space >> string "Game "
   id <- many digit
   char ':'
   return (read id)
