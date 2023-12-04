@@ -1,5 +1,4 @@
 import Data.Char (digitToInt, toLower)
-import Data.List (foldl')
 import Data.Monoid
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
@@ -29,10 +28,10 @@ gearsWithTwoPartsTouchingRatio a = gearRatios <$> filter (\x -> length x == 2) (
 
 gearRatios :: [(Engine, Position)] -> Int
 gearRatios =
-  let gearRatio a b = case fst b of
+  let gearRatio b a = case fst b of
         Part (bVal, _) -> a * bVal
         _ -> 1
-   in foldl' gearRatio 1
+   in foldr gearRatio 1
 
 partsWithSymbolsTouching :: [(Engine, Position)] -> [(Engine, Position)]
 partsWithSymbolsTouching a =
@@ -74,10 +73,10 @@ matrixToEngineList :: [[Engine]] -> [(Engine, Position)]
 matrixToEngineList mat = concat $ foldOuter $ foldInner <$> mat
 
 foldOuter :: [[(Engine, Int)]] -> [[(Engine, Position)]]
-foldOuter = snd . foldl' aggEngineList (0, [])
+foldOuter = snd . foldr aggEngineList (0, [])
 
-aggEngineList :: (Int, [[(Engine, Position)]]) -> [(Engine, Int)] -> (Int, [[(Engine, Position)]])
-aggEngineList (ind, engPos) engPosList =
+aggEngineList :: [(Engine, Int)] -> (Int, [[(Engine, Position)]]) ->  (Int, [[(Engine, Position)]])
+aggEngineList engPosList (ind, engPos) =
   let mappedList = createPosition ind <$> engPosList
    in (ind + 1, mappedList : engPos)
 
