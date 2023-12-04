@@ -25,7 +25,7 @@ data Engine = Period | Part (Int, Int) | Symbol Char deriving (Show, Eq)
 data Position = Position {x :: Int, y :: Int} deriving (Show, Eq)
 
 gearsWithTwoPartsTouchingRatio :: [(Engine, Position)] -> [Int]
-gearsWithTwoPartsTouchingRatio a = fmap gearRatios $ filter (\x -> length x == 2) $ getTouchingParts a <$> gears a
+gearsWithTwoPartsTouchingRatio a = gearRatios <$> filter (\x -> length x == 2) (getTouchingParts a <$> gears a)
 
 gearRatios :: [(Engine, Position)] -> Int
 gearRatios =
@@ -78,19 +78,21 @@ foldOuter = snd . foldl' aggEngineList (0, [])
 
 aggEngineList :: (Int, [[(Engine, Position)]]) -> [(Engine, Int)] -> (Int, [[(Engine, Position)]])
 aggEngineList (ind, engPos) engPosList =
-  let mappedList = mapPositions ind <$> engPosList
+  let mappedList = createPosition ind <$> engPosList
    in (ind + 1, mappedList : engPos)
 
-mapPositions :: Int -> (Engine, Int) -> (Engine, Position)
-mapPositions y (engine, x) = (engine, Position {x = x, y = y})
+createPosition :: Int -> (Engine, Int) -> (Engine, Position)
+createPosition y (engine, x) = (engine, Position {x = x, y = y})
 
 foldInner :: [Engine] -> [(Engine, Int)]
 foldInner =
-  let aggEngines (index, list) engine = case engine of
-        Period -> (index + 1, list)
-        Symbol x -> (index + 1, (Symbol x, index) : list)
-        Part (x, y) -> (index + y, (Part (x, y), index) : list)
-   in snd . foldl' aggEngines (0, [])
+  let aggEngines engine (index, list) =
+        let accum = case engine of
+              Period -> list
+              Symbol x -> (Symbol x, index) : list
+              Part (x, y) -> (Part (x, y), index) : list
+         in (index + itemLength engine, accum)
+   in snd . foldr aggEngines (0, [])
 
 itemLength :: Engine -> Int
 itemLength engine = case engine of
