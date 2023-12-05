@@ -2,8 +2,9 @@ import Control.Monad
 import Control.Monad.ST
 import Data.Char (digitToInt, toLower)
 import Data.Monoid
-import Data.Set
+import Data.Set as Set
 import Data.Vector.Mutable as M
+import Data.Vector as V
 import Text.Parsec
 import Text.Parsec.String (Parser, parseFromFile)
 
@@ -15,38 +16,39 @@ main = do
     Left err -> print err
     Right e -> do
       putStrLn "AOC4 Answer 1:"
-      print $ sum $ pointTotal <$> e
+      print $ Prelude.sum $ pointTotal <$> e
       putStrLn "AOC4 Answer 2: "
-      print $ pointTotal2 <$> e
+      print $ V.sum $ runST $ do 
+                  v <- numberOfEachCard $ pointTotal2 <$> e
+                  V.freeze v
 
 data Card = Card {cardId :: Int, wins :: Set Int, mine :: [Int]} deriving (Show, Eq)
 
--- -- To use it, you need to run it within the ST monad
--- main :: IO ()
--- main = print $
---   runST $ do
---     v <- updateVector
---     M.freeze v -- Convert it back to an immutable vector
-
--- A function to update a mutable vector
-updateVector :: [Int] -> ST s (M.STVector s Int)
-updateVector pointTotals = do
-  let pt = thaw . fromList . pointTotals
-  v <- M.replicate 1 (length pt)
-  V.iforM_ pt $ (\(i, x) -> )
-  M.write v 0 10 -- Write 10 at index 0
-  M.write v 1 20 -- Write 20 at index 1
+numberOfEachCard :: [Int] -> ST s (M.MVector s Int)
+numberOfEachCard pointTotals = do
+  pt <- thaw (V.fromList pointTotals)
+  v <- M.replicate (M.length pt) 1
+  M.iforM_ pt (\i val -> do
+    increment <- M.read v i
+    let lastIndex = M.length v - 1
+        seqBeginning = min (i+1) lastIndex
+        seqEnd = min (i + val) lastIndex
+        updateList = if val == 0 || i == lastIndex
+                     then []
+                     else [seqBeginning..seqEnd]
+    Control.Monad.forM_ updateList
+      (\x -> M.modify v (+increment) x))
   return v
 
 pointTotal2 :: Card -> Int
-pointTotal2 card = length $ Prelude.filter (\x -> x `member` wins card) (mine card)
+pointTotal2 card = Prelude.length $ Prelude.filter (\x -> x `member` wins card) (mine card)
 
 pointTotal :: Card -> Double
 pointTotal card =
   ( \x ->
       if Prelude.null x
         then 0.0
-        else 2 ** (fromIntegral (length x) - 1)
+        else 2 ** (fromIntegral (Prelude.length x) - 1)
   )
     $ Prelude.filter (\x -> x `member` wins card) (mine card)
 
@@ -66,7 +68,7 @@ aocLine = do
   char '|'
   spaces
   mine <- numList
-  return $ Card {cardId = read cardId, wins = fromList wins, mine = mine}
+  return $ Card {cardId = Prelude.read cardId, wins = Set.fromList wins, mine = mine}
 
 numList :: Parser [Int]
 numList = number `sepEndBy1` many1 (char ' ')
@@ -74,4 +76,4 @@ numList = number `sepEndBy1` many1 (char ' ')
 number :: Parser Int
 number = do
   x <- many1 digit
-  return $ read x
+  return $ Prelude.read x
