@@ -24,6 +24,7 @@ main = do
 
 data Card = Card {cardId :: Int, wins :: Set Int, mine :: [Int]} deriving (Show, Eq)
 
+-- Shh don't look at this no one needs to know
 numberOfEachCard :: [Int] -> ST s (M.MVector s Int)
 numberOfEachCard pointTotals = do
   pt <- thaw (V.fromList pointTotals)
@@ -41,7 +42,7 @@ numberOfEachCard pointTotals = do
   return v
 
 pointTotal2 :: Card -> Int
-pointTotal2 card = Prelude.length $ Prelude.filter (\x -> x `member` wins card) (mine card)
+pointTotal2 card = Prelude.length $ Prelude.filter (`member` wins card) (mine card)
 
 pointTotal :: Card -> Double
 pointTotal card =
