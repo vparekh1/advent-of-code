@@ -7,17 +7,17 @@ main = do
   case f of
     Left err -> print err
     Right e -> do
-      putStrLn "AOC4 Answer 1:"
+      putStrLn "AOC6 Answer 1:"
       print $ product $ numOfOptions <$> e
   g <- parseFromFile aocFile2 "aoc6.txt"
   case g of
     Left err -> print err
     Right e -> do
-      putStrLn "AOC4 Answer 2: "
+      putStrLn "AOC6 Answer 2: "
       print $ numOfOptions $ e
       let t = fst e
           d = snd e
-      putStrLn "AOC4 Answer 2 (the dumb way):"
+      putStrLn "AOC6 Answer 2 (the dumb way):"
       print $ length $ filter (\x -> x*(t-x) > d) [1..t]
 
 numOfOptions :: (Double, Double) -> Int
