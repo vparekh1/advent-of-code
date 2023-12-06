@@ -1,7 +1,10 @@
+{-# LANGUAGE ViewPatterns #-}
+
 import Data.Char (digitToInt, toLower)
 import Data.Monoid
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
+import Data.Vector as V
 import Data.Foldable as F
 
 data Smap = Smap {dest :: !Int, source :: !Int, range :: !Int} deriving (Show, Eq)
@@ -13,18 +16,18 @@ main = do
     Left err -> print err
     Right e -> do
         putStrLn "AOC5 Answer 1:"
-        print $ minimum $ (foldLocation (snd e)) <$> (fst e)
+        print $ V.minimum $ (foldLocation (snd e)) <$> (fst e)
   g <- parseFromFile aocFile2 "aoc5.txt"
   case g of
     Left err -> print err
     Right e -> do
         putStrLn "AOC5 Answer 2:"
-        print $ minimum $ fst <$> fst (foldl singleLayer (fst e, []) (snd e))
+        print $ F.minimum $ fst <$> fst (F.foldl singleLayer (fst e, []) (snd e))
 
 singleLayer :: ([(Int, Int)], [(Int, Int)]) -> [Smap] -> ([(Int, Int)], [(Int, Int)])
 singleLayer seedList smap = 
-    let a = foldl foldingRanges seedList smap
-    in ((fst a) ++ (snd a), [])
+    let a = F.foldl foldingRanges seedList smap
+    in ((fst a) Prelude.++ (snd a), [])
 
 foldingRanges :: ([(Int, Int)], [(Int, Int)]) -> Smap -> ([(Int, Int)], [(Int, Int)])
 foldingRanges x smap = combineArrays [([], snd x), rangeArray (fst x) smap]
@@ -33,7 +36,7 @@ rangeArray :: [(Int, Int)] -> Smap -> ([(Int, Int)], [(Int, Int)])
 rangeArray seedList smap = combineArrays $ (\x -> rangeLocation x smap) <$> seedList
 
 combineArrays :: [([(Int, Int)], [(Int, Int)])] -> ([(Int, Int)], [(Int, Int)])
-combineArrays x = (concat $ fst <$> x, concat $ snd <$> x)
+combineArrays x = (F.concat $ fst <$> x, F.concat $ snd <$> x)
 
 rangeLocation :: (Int, Int) -> Smap -> ([(Int, Int)], [(Int, Int)])
 rangeLocation seedPair smap
@@ -56,13 +59,13 @@ locationMap x seed =
         True -> dest x + sourceDiff
         False -> seed
 
-foldLocation :: [[Smap]] -> Int -> Int
-foldLocation [] seed = seed
-foldLocation (x:xs) seed = foldLocation xs (oneLocation seed x)
+foldLocation :: (Vector (Vector Smap)) -> Int -> Int
+foldLocation (V.uncons -> Nothing) seed = seed
+foldLocation (V.uncons -> Just (x,xs)) seed = foldLocation xs (oneLocation seed x)
 
-oneLocation :: Int -> [Smap] -> Int
-oneLocation seed [] = seed
-oneLocation seed (x:xs) = 
+oneLocation :: Int -> Vector Smap -> Int
+oneLocation seed (V.uncons -> Nothing) = seed
+oneLocation seed (V.uncons -> Just (x, xs)) = 
     let sourceDiff = seed - source x
         b = sourceDiff >= 0 && sourceDiff < (range x)
     in case b of 
@@ -70,7 +73,7 @@ oneLocation seed (x:xs) =
         False -> oneLocation seed xs
 
 -- Parsers
-aocFile :: Parser ([Int], [[Smap]])
+aocFile :: Parser ((Vector Int), (Vector (Vector Smap)))
 aocFile = do
     see <- seeds
     many1 (noneOf "0123456789")
@@ -82,15 +85,17 @@ aocFile2 = do
     see <- seeds2
     many1 (noneOf "0123456789")
     sm <- manySmaps
-    return (see, sm)
+    return (V.toList see, V.toList $ V.toList <$> sm)
 
-manySmaps :: Parser [[Smap]]
+manySmaps :: Parser (Vector (Vector Smap))
 manySmaps = do
-    readSmaps `sepEndBy1` many1 (noneOf "0123456789")
+    x <- readSmaps `sepEndBy1` many1 (noneOf "0123456789")
+    return (V.fromList x)
 
-readSmaps :: Parser [Smap]
+readSmaps :: Parser (Vector Smap)
 readSmaps = do
-    readSmap `sepEndBy1` endOfLine
+    x <- readSmap `sepEndBy1` endOfLine
+    return (V.fromList x)
 
 readSmap :: Parser Smap
 readSmap = do
@@ -101,17 +106,19 @@ readSmap = do
     r <- many1 digit
     return (Smap {dest = read d, source = read s, range = read r})
 
-seeds :: Parser [Int]
+seeds :: Parser (Vector Int)
 seeds = do
     string' "seeds:"
     spaces
-    seed `sepBy` many1 (char ' ')
+    x <- seed `sepBy` many1 (char ' ')
+    return (V.fromList x)
 
-seeds2 :: Parser [(Int, Int)]
+seeds2 :: Parser (Vector (Int, Int))
 seeds2 = do
     string' "seeds:"
     spaces
-    seed2 `sepBy` many1 (char ' ')
+    x <- seed2 `sepBy` many1 (char ' ')
+    return (V.fromList x)
 
 seed2 :: Parser (Int, Int)
 seed2 = do
