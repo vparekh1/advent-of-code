@@ -1,8 +1,6 @@
 import Control.Monad
 import Control.Monad.ST
-import Data.Char (digitToInt, toLower)
-import Data.Monoid
-import Data.Set as Set
+import Data.HashSet as Set
 import Data.Vector.Mutable as M
 import Data.Vector as V
 import Text.Parsec
@@ -22,12 +20,12 @@ main = do
                   v <- numberOfEachCard $ pointTotal2 <$> e
                   V.freeze v
 
-data Card = Card {cardId :: Int, wins :: Set Int, mine :: [Int]} deriving (Show, Eq)
+data Card = Card {cardId :: Int, wins :: HashSet Int, mine :: Vector Int} deriving (Show, Eq)
 
 -- Shh don't look at this no one needs to know
-numberOfEachCard :: [Int] -> ST s (M.MVector s Int)
+numberOfEachCard :: Vector Int -> ST s (M.MVector s Int)
 numberOfEachCard pointTotals = do
-  pt <- thaw (V.fromList pointTotals)
+  pt <- thaw pointTotals
   v <- M.replicate (M.length pt) 1
   M.iforM_ pt (\i val -> do
     increment <- M.read v i
@@ -42,19 +40,21 @@ numberOfEachCard pointTotals = do
   return v
 
 pointTotal2 :: Card -> Int
-pointTotal2 card = Prelude.length $ Prelude.filter (`member` wins card) (mine card)
+pointTotal2 card = V.length $ V.filter (`member` wins card) (mine card)
 
 pointTotal :: Card -> Double
 pointTotal card =
   ( \x ->
-      if Prelude.null x
+      if V.null x
         then 0.0
-        else 2 ** (fromIntegral (Prelude.length x) - 1)
+        else 2 ** (fromIntegral (V.length x) - 1)
   )
-    $ Prelude.filter (\x -> x `member` wins card) (mine card)
+    $ V.filter (\x -> x `member` wins card) (mine card)
 
-aocFile :: Parser [Card]
-aocFile = aocLine `sepEndBy1` endOfLine
+aocFile :: Parser (Vector Card)
+aocFile = do
+  x <- aocLine `sepEndBy1` endOfLine
+  return $ V.fromList x
 
 aocLine :: Parser Card
 aocLine = do
@@ -69,7 +69,7 @@ aocLine = do
   char '|'
   spaces
   mine <- numList
-  return $ Card {cardId = Prelude.read cardId, wins = Set.fromList wins, mine = mine}
+  return $ Card {cardId = Prelude.read cardId, wins = Set.fromList wins, mine = V.fromList mine}
 
 numList :: Parser [Int]
 numList = number `sepEndBy1` many1 (char ' ')
