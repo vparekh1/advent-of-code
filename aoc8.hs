@@ -1,8 +1,11 @@
-import Data.Graph
-import Data.Map
+{-# LANGUAGE ViewPatterns #-}
+
+import Data.HashMap.Strict as M
 import Text.Parsec
-import Data.Traversable
-import Text.Parsec.Text (Parser, parseFromFile)
+import Text.Parsec.ByteString (Parser, parseFromFile)
+import Data.ByteString as B
+import qualified Data.ByteString.Internal as BS (c2w, w2c)
+import Data.Vector as V
 
 main :: IO ()
 main = do
@@ -11,74 +14,65 @@ main = do
     Left err -> print err
     Right e -> do
       putStrLn "AOC8 Answer 1:"
-      print $ newMapWalk "AAA" "ZZZ" $ newMap e "ZZZ"
+      print $ newHashMapWalk (pack $ BS.c2w <$> "AAA") (pack $ BS.c2w <$> "ZZZ") $ newHashMap e (pack $ BS.c2w <$> "ZZZ")
       putStrLn "AOC8 Answer 2:"
-      print $ Prelude.foldl lcm 1 $ ($ newMap2 e "ZZZ") <$> (\x -> newMapWalk2 x "ZZZ") <$> (Prelude.filter (\x -> x !! 2 == 'A') $ keys $ snd e)
+      print $ Prelude.foldr lcm 1 $ ($ newHashMap2 e (pack $ BS.c2w <$> "ZZZ")) 
+          <$> (\x -> newHashMapWalk x (pack $ BS.c2w <$> "ZZZ")) 
+          <$> (Prelude.filter (\x -> x B.!? 2 == Just (BS.c2w 'A')) $ keys $ snd e)
 
-type Source = String
-type Dest = String
+newHashMap2 :: (Vector((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString)) -> ByteString -> HashMap ByteString (Int, ByteString)
+newHashMap2 (funList, elfHashMap) dest = M.fromList $ (fullWalk2 (funList, elfHashMap) dest) <$> keys elfHashMap
 
-newMapWalk2 :: Source -> Dest -> Map String (Int, String) ->  Int
-newMapWalk2 source dest map = complexMapWalk map source dest 0
-    where complexMapWalk map source dest count
-            | source !! 2 == dest !! 2 = count
-            | otherwise = let (dist, next) = map ! source
-                        in complexMapWalk map next dest (count + dist)
-
-newMap2 :: ([(String, String) -> String], Map String (String, String)) -> Dest -> Map String (Int, String)
-newMap2 (funList, elfMap) dest = fromList $ (fullWalk2 (funList, elfMap) dest) <$> keys elfMap
-
-fullWalk2 :: ([(String, String) -> String], Map String (String, String)) -> Source -> Dest -> (String, (Int, String))
-fullWalk2 (funList, elfMap) dest source = complexWalk (funList, elfMap) source dest source 0
-    where singleApply fun s = fun $ elfMap ! s
-          complexWalk ([], _) source dest curr count = (source, (count, curr))
-          complexWalk ((x:xs), elfMap) source dest curr count 
-            | curr !! 2 == dest !! 2 = (source, (count, dest))
-            | source !! 2 == dest !! 2 = (source, (0, source))
+fullWalk2 :: (Vector((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString)) -> ByteString -> ByteString -> (ByteString, (Int, ByteString))
+fullWalk2 (funList, elfHashMap) dest source = complexWalk (funList, elfHashMap) source dest source 0
+    where singleApply fun s = fun $ elfHashMap M.! s
+          complexWalk (V.uncons -> Nothing, _) source dest curr count = (source, (count, curr))
+          complexWalk (V.uncons -> Just (x,xs), elfHashMap) source dest curr count 
+            | curr B.!? 2 == dest B.!? 2 = (source, (count, dest))
             | otherwise = let next = singleApply x curr
-                        in complexWalk (xs, elfMap) source dest next (count + 1)
+                        in complexWalk (xs, elfHashMap) source dest next (count + 1)
 
-newMapWalk :: Source -> Dest -> Map String (Int, String) ->  Int
-newMapWalk source dest map = complexMapWalk map source dest 0
-    where complexMapWalk map source dest count
+newHashMapWalk :: ByteString -> ByteString -> HashMap ByteString (Int, ByteString) ->  Int
+newHashMapWalk source dest map = complexHashMapWalk map source dest 0
+    where complexHashMapWalk map source dest count
             | source == dest = count
-            | otherwise = let (dist, next) = map ! source
-                        in complexMapWalk map next dest (count + dist)
+            | otherwise = let (dist, next) = map M.! source
+                        in complexHashMapWalk map next dest (count + dist)
 
-newMap :: ([(String, String) -> String], Map String (String, String)) -> Dest -> Map String (Int, String)
-newMap (funList, elfMap) dest = fromList $ (fullWalk (funList, elfMap) dest) <$> keys elfMap
+newHashMap :: (Vector((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString)) -> ByteString -> HashMap ByteString (Int, ByteString)
+newHashMap (funList, elfHashMap) dest = M.fromList $ (fullWalk (funList, elfHashMap) dest) <$> keys elfHashMap
 
-fullWalk :: ([(String, String) -> String], Map String (String, String)) -> Dest -> Source -> (String, (Int, String))
-fullWalk (funList, elfMap) dest source = complexWalk (funList, elfMap) source dest source 0
-    where singleApply fun s = fun $ elfMap ! s
-          complexWalk ([], _) source dest curr count = (source, (count, curr))
-          complexWalk ((x:xs), elfMap) source dest curr count 
+fullWalk :: (Vector((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString)) -> ByteString -> ByteString -> (ByteString, (Int, ByteString))
+fullWalk (funList, elfHashMap) dest source = complexWalk (funList, elfHashMap) source dest source 0
+    where singleApply fun s = fun $ elfHashMap M.! s
+          complexWalk (V.uncons -> Nothing, _) source dest curr count = (source, (count, curr))
+          complexWalk (V.uncons -> Just (x,xs), elfHashMap) source dest curr count 
             | curr == dest = (source, (count, dest))
-            | source == dest = (source, (0, source))
             | otherwise = let next = singleApply x curr
-                        in complexWalk (xs, elfMap) source dest next (count + 1)
+                        in complexWalk (xs, elfHashMap) source dest next (count + 1)
 
-aocFile :: Parser ([(String, String) -> String], Map String (String, String))
+aocFile :: Parser (Vector ((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString))
 aocFile = do
     walk <- lrs
     spaces
-    elfMap <- elf `sepEndBy1` endOfLine
-    return $ (walk, fromList elfMap)
+    elfHashMap <- elf `sepEndBy1` endOfLine
+    eof
+    return $ (walk, M.fromList elfHashMap)
 
-elf :: Parser (String, (String, String))
+elf :: Parser (ByteString, (ByteString, ByteString))
 elf = do
     key <- many1 letter
-    spaces >> char '=' >> spaces >> char '('
+    many1 (oneOf " =(")
     left <- many1 letter
-    spaces >> char ',' >> spaces
+    many1 (oneOf " ,")
     right <- many1 letter
-    char ')' >> many (char ' ')
-    return $ (key, (left, right)) 
+    many1 (oneOf " )")
+    return $ (pack $ BS.c2w <$> key, (pack $ BS.c2w <$> left, pack $ BS.c2w <$> right)) 
 
-lrs :: Parser [(String, String) -> String]
+lrs :: Parser (Vector ((ByteString, ByteString) -> ByteString))
 lrs = do
     x <- many1 (oneOf "LR")
-    return $ toBin <$> x
+    return $ V.fromList $ toBin <$> x
     where toBin b = case b of
             'L' -> fst 
             'R' -> snd
