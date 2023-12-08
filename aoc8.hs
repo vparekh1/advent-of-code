@@ -14,10 +14,12 @@ main = do
     Left err -> print err
     Right e -> do
       putStrLn "AOC8 Answer 1:"
-      print $ newHashMapWalk (pack $ BS.c2w <$> "AAA") (pack $ BS.c2w <$> "ZZZ") $ newHashMap e (pack $ BS.c2w <$> "ZZZ")
+      let aaa = pack $ BS.c2w <$> "AAA"
+          zzz = pack $ BS.c2w <$> "ZZZ"
+      print $ newHashMapWalk aaa zzz $ newHashMap e zzz
       putStrLn "AOC8 Answer 2:"
-      print $ Prelude.foldr lcm 1 $ ($ newHashMap2 e (pack $ BS.c2w <$> "ZZZ")) 
-          <$> (\x -> newHashMapWalk x (pack $ BS.c2w <$> "ZZZ")) 
+      print $ Prelude.foldr lcm 1 $ ($ newHashMap2 e zzz) 
+          <$> (\x -> newHashMapWalk x zzz) 
           <$> (Prelude.filter (\x -> x B.!? 2 == Just (BS.c2w 'A')) $ keys $ snd e)
 
 newHashMap2 :: (Vector((ByteString, ByteString) -> ByteString), HashMap ByteString (ByteString, ByteString)) -> ByteString -> HashMap ByteString (Int, ByteString)
