@@ -23,7 +23,16 @@ main = do
             (graph2, nodeFromVertex2, vertexFromKey2) = graphFromEdges bif
             interiorAndPath = snd3 . nodeFromVertex2 <$> (fromJust $ reachable graph2 <$> vertexFromKey2 (snd3 $ nodes !! 1))
             path = (\x -> snd3 x) <$> nodes
-        let diff = (S.fromList interiorAndPath) `S.difference` (S.fromList path)
+            diff = (S.fromList interiorAndPath) `S.difference` (S.fromList path)
+        putStr "Possibility 1 (cause of interior and exterior): "
+        print $ length $ diff
+        let nodes = nodeFromVertex <$> canReach
+            bif = buildInteriorFlood dimension Minus (fst firstS) $ (\x -> (fst3 x, snd3 x)) <$> nodes
+            (graph2, nodeFromVertex2, vertexFromKey2) = graphFromEdges bif
+            interiorAndPath = snd3 . nodeFromVertex2 <$> (fromJust $ reachable graph2 <$> vertexFromKey2 (snd3 $ nodes !! 1))
+            path = (\x -> snd3 x) <$> nodes
+            diff = (S.fromList interiorAndPath) `S.difference` (S.fromList path)
+        putStr "Possibility 2 (cause of interior and exterior): "
         print $ length $ diff
 
 data Direction = Plus | Minus deriving (Eq, Show)
