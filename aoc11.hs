@@ -2,6 +2,7 @@ import Text.Parsec
 import Text.Parsec.ByteString (Parser, parseFromFile)
 import Data.HashSet as S
 import Data.List
+import Data.Vector as V
 
 type Point = (Int, Int) 
 
@@ -15,25 +16,25 @@ main = do
         let emptyYs = emptyY e
             emptyXs = emptyX e
             dist = distance emptyXs emptyYs 2
-        print $ sum $ (\x -> dist (fst x) (snd x)) <$> (pairs $ fst <$> e)
+        print $ Prelude.sum $ (\x -> dist (fst x) (snd x)) <$> (pairs $ fst <$> e)
         putStrLn "AOC11 Answer 2:"
         let dist2 = distance emptyXs emptyYs 1000000
-        print $ sum $ (\x -> dist2 (fst x) (snd x)) <$> (pairs $ fst <$> e)
+        print $ Prelude.sum $ (\x -> dist2 (fst x) (snd x)) <$> (pairs $ fst <$> e)
 
-distance :: HashSet Int -> HashSet Int -> Int -> Point -> Point -> Int
+distance :: Vector Int -> Vector Int -> Int -> Point -> Point -> Int
 distance emptyXs emptyYs expansion (x1,y1) (x2,y2) 
-    = abs (y2 - y1) + abs (x2-x1) + (length $ S.filter (\x -> x >= (min x1 x2) && x <= (max x1 x2)) emptyXs) * (expansion-1)
-                                    + (length $ S.filter (\x -> x >= (min y1 y2) && x <= (max y1 y2)) emptyYs) * (expansion-1)
+    = abs (y2 - y1) + abs (x2-x1) + (V.length $ V.filter (\x -> x >= (min x1 x2) && x <= (max x1 x2)) emptyXs) * (expansion-1)
+                                    + (V.length $ V.filter (\x -> x >= (min y1 y2) && x <= (max y1 y2)) emptyYs) * (expansion-1)
 
-emptys :: (Point -> Int) -> [(Point, Char)] -> HashSet Int
+emptys :: (Point -> Int) -> [(Point, Char)] -> Vector Int
 emptys fun l = 
     let nonemptyYs = (fun . fst) <$> l
-        maxY = maximum nonemptyYs
-    in (S.fromList [1..maxY]) `difference` (S.fromList nonemptyYs)
+        maxY = Prelude.maximum nonemptyYs
+    in V.fromList $ S.toList $ (S.fromList [1..maxY]) `difference` (S.fromList nonemptyYs)
 
-emptyY :: [(Point, Char)] -> HashSet Int
+emptyY :: [(Point, Char)] -> Vector Int
 emptyY = emptys snd
-emptyX :: [(Point, Char)] -> HashSet Int
+emptyX :: [(Point, Char)] -> Vector Int
 emptyX = emptys fst
 
 pairs :: [a] -> [(a, a)]
