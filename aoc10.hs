@@ -4,6 +4,7 @@ import Data.Graph
 import Data.Maybe as Maybe
 import Data.HashSet as S
 import Data.Tuple.Extra
+import Debug.Trace
 
 main :: IO ()
 main = do
