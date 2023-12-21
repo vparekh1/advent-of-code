@@ -1,8 +1,8 @@
 import Text.Parsec
 import Text.Parsec.ByteString (Parser, parseFromFile)
-import Data.HashSet as S
+import Data.IntSet as S
 import Data.List
-import Data.Vector as V
+import Data.Vector.Unboxed as V
 
 type Point = (Int, Int) 
 
@@ -16,10 +16,10 @@ main = do
         let emptyYs = emptyY e
             emptyXs = emptyX e
             dist = distance emptyXs emptyYs 2
-        print $ Prelude.sum $ (\x -> dist (fst x) (snd x)) <$> (pairs $ fst <$> e)
+        print $ Prelude.sum $ (uncurry dist) <$> (pairs $ fst <$> e)
         putStrLn "AOC11 Answer 2:"
         let dist2 = distance emptyXs emptyYs 1000000
-        print $ Prelude.sum $ (\x -> dist2 (fst x) (snd x)) <$> (pairs $ fst <$> e)
+        print $ Prelude.sum $ (uncurry dist2) <$> (pairs $ fst <$> e)
 
 distance :: Vector Int -> Vector Int -> Int -> Point -> Point -> Int
 distance emptyXs emptyYs expansion (x1,y1) (x2,y2) 
@@ -30,7 +30,7 @@ emptys :: (Point -> Int) -> [(Point, Char)] -> Vector Int
 emptys fun l = 
     let nonemptyYs = (fun . fst) <$> l
         maxY = Prelude.maximum nonemptyYs
-    in V.fromList $ S.toList $ (S.fromList [1..maxY]) `difference` (S.fromList nonemptyYs)
+    in V.fromList $ sort $ S.toList $ (S.fromRange (1,maxY)) `difference` (S.fromList nonemptyYs)
 
 emptyY :: [(Point, Char)] -> Vector Int
 emptyY = emptys snd

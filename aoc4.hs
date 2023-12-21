@@ -42,9 +42,9 @@ numberOfEachCard pointTotals = do
 pointTotal2 :: Card -> Int
 pointTotal2 card = V.length $ V.filter (`member` wins card) (mine card)
 
-pointTotal :: Card -> Double
+pointTotal :: Card -> Int
 pointTotal card =
-  ( \x ->
+  round $ ( \x ->
       if V.null x
         then 0.0
         else 2 ** (fromIntegral (V.length x) - 1)

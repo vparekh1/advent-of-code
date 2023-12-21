@@ -42,14 +42,14 @@ toBag xs =
 -- Parsing
 aocFile :: Parser [(Int, [Bag])]
 aocFile = do
-  x <- aocLine `endBy` endOfLine
+  x <- aocLine `sepEndBy1` endOfLine
   eof
   return x
 
 aocLine :: Parser (Int, [Bag])
 aocLine = do
   gi <- gameId
-  bagi <- (bagNum `sepBy` char ',') `sepBy` char ';'
+  bagi <- (bagNum `sepEndBy1` char ',') `sepEndBy1` char ';'
   return (gi, toBag <$> bagi)
 
 gameId :: Parser Int
