@@ -1,7 +1,6 @@
 module Aoc202302 (solve) where
 
 import Data.Char (toLower)
-import Data.Monoid
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
 
@@ -56,18 +55,18 @@ aocLine = do
 
 gameId :: Parser Int
 gameId = do
-  many space >> string "Game "
-  id <- many digit
-  char ':'
-  return (read id)
+  _ <- many space >> string "Game "
+  i <- many digit
+  _ <- char ':'
+  return (read i)
 
 bagNum :: Parser (Int, String)
 bagNum = do
-  many space
-  id <- many digit
-  many space
+  _ <- many space
+  i <- many digit
+  _ <- many space
   color <- many letter
-  return (read id, toLower <$> color)
+  return (read i, toLower <$> color)
 
 -- Bag Monoid
 data Bag = Bag

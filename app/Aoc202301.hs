@@ -3,29 +3,10 @@ module Aoc202301 (solve) where
 import Data.Char
 import Parse
 import Text.Parsec
-  ( anyChar,
-    digit,
-    endOfLine,
-    lookAhead,
-    noneOf,
-    sepEndBy1,
-    string',
-    try,
-    (<|>),
-  )
-import Text.Parsec.ByteString (Parser, parseFromFile)
+import Text.Parsec.ByteString (Parser)
 
 solve :: IO ()
-solve =
-  do
-    f <- parseFromFile aocFile "data/aoc1.txt"
-    case f of
-      Left err -> print err
-      Right g -> do
-        putStrLn "AOC1:"
-        print $ sum $ num1 <$> g
-        putStrLn "AOC2:"
-        print $ sum $ num2 <$> g
+solve = printSolution aocFile aocFile "data/aoc1.txt" (\g -> sum $ num1 <$> g) (\g -> sum $ num2 <$> g)
 
 data Interesting = Num Int | Word String deriving (Eq, Show)
 
@@ -48,16 +29,16 @@ parseInteresting :: Parser Interesting
 parseInteresting = do
   x <-
     lookAhead $
-      (do Num . digitToInt <$> digit)
-        <|> (do x <- string' "zero"; return $ Word x)
-        <|> (do x <- string' "one"; return $ Word x)
-        <|> (do x <- string' "two"; return $ Word x)
-        <|> (do x <- string' "three"; return $ Word x)
-        <|> (do x <- string' "four"; return $ Word x)
-        <|> (do x <- string' "five"; return $ Word x)
-        <|> (do x <- string' "six"; return $ Word x)
-        <|> (do x <- string' "seven"; return $ Word x)
-        <|> (do x <- string' "eight"; return $ Word x)
-        <|> (do x <- string' "nine"; return $ Word x)
+      (Num . digitToInt <$> digit)
+        <|> (Word <$> string' "zero")
+        <|> (Word <$> string' "one")
+        <|> (Word <$> string' "two")
+        <|> (Word <$> string' "three")
+        <|> (Word <$> string' "four")
+        <|> (Word <$> string' "five")
+        <|> (Word <$> string' "six")
+        <|> (Word <$> string' "seven")
+        <|> (Word <$> string' "eight")
+        <|> (Word <$> string' "nine")
   _ <- anyChar
   return x

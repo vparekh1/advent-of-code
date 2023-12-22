@@ -6,6 +6,8 @@ module Parse
     word2num,
     num2word,
     parseLineVector,
+    printSolution,
+    Point,
   )
 where
 
@@ -16,8 +18,21 @@ import Data.Vector as V
 import Text.Parsec
 import Text.Parsec.ByteString
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+printSolution :: (Show a1, Show a2) => Parser t1 -> Parser t2 -> FilePath -> (t1 -> a1) -> (t2 -> a2) -> IO ()
+printSolution parser parser2 file answer1 answer2 =
+  do
+    f <- parseFromFile parser file
+    case f of
+      Left err -> print err
+      Right g -> do
+        putStrLn "AOC1 Answer:"
+        print $ answer1 g
+    f2 <- parseFromFile parser2 file
+    case f2 of
+      Left err -> print err
+      Right g -> do
+        putStrLn "AOC2 Answer:"
+        print $ answer2 g
 
 numbersAsWords :: IntMap String
 numbersAsWords = I.fromList $ Prelude.zip [0 ..] ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
@@ -63,4 +78,4 @@ parseLineList garbage interesting = do
 skipUntil :: Parser a -> Parser end -> Parser (Maybe end)
 skipUntil p end = scan
   where
-    scan = Just <$> end <|> do x <- p; scan <|> return Nothing
+    scan = Just <$> end <|> do _ <- p; scan <|> return Nothing
