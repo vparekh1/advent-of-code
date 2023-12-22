@@ -3,8 +3,8 @@ module Aoc202304 (solve) where
 import Control.Monad
 import Control.Monad.ST
 import Data.HashSet as Set
-import Data.Vector.Mutable as M
 import Data.Vector as V
+import Data.Vector.Mutable as M
 import Text.Parsec
 import Text.Parsec.String (Parser, parseFromFile)
 
@@ -18,9 +18,9 @@ solve = do
       putStrLn "AOC4 Answer 1:"
       print $ Prelude.sum $ pointTotal <$> e
       putStrLn "AOC4 Answer 2: "
-      print $ V.sum $ runST $ do 
-                  v <- numberOfEachCard $ pointTotal2 <$> e
-                  V.freeze v
+      print $ V.sum $ runST $ do
+        v <- numberOfEachCard $ pointTotal2 <$> e
+        V.freeze v
 
 data Card = Card {cardId :: Int, wins :: HashSet Int, mine :: Vector Int} deriving (Show, Eq)
 
@@ -29,16 +29,21 @@ numberOfEachCard :: Vector Int -> ST s (M.MVector s Int)
 numberOfEachCard pointTotals = do
   pt <- thaw pointTotals
   v <- M.replicate (M.length pt) 1
-  M.iforM_ pt (\i val -> do
-    increment <- M.read v i
-    let lastIndex = M.length v - 1
-        seqBeginning = min (i+1) lastIndex
-        seqEnd = min (i + val) lastIndex
-        updateList = if val == 0 || i == lastIndex
-                     then []
-                     else [seqBeginning..seqEnd]
-    Control.Monad.forM_ updateList
-      (\x -> M.modify v (+increment) x))
+  M.iforM_
+    pt
+    ( \i val -> do
+        increment <- M.read v i
+        let lastIndex = M.length v - 1
+            seqBeginning = min (i + 1) lastIndex
+            seqEnd = min (i + val) lastIndex
+            updateList =
+              if val == 0 || i == lastIndex
+                then []
+                else [seqBeginning .. seqEnd]
+        Control.Monad.forM_
+          updateList
+          (M.modify v (+ increment))
+    )
   return v
 
 pointTotal2 :: Card -> Int
@@ -46,11 +51,12 @@ pointTotal2 card = V.length $ V.filter (`member` wins card) (mine card)
 
 pointTotal :: Card -> Int
 pointTotal card =
-  round $ ( \x ->
-      if V.null x
-        then 0.0
-        else 2 ** (fromIntegral (V.length x) - 1)
-  )
+  round
+    $ ( \x ->
+          if V.null x
+            then 0.0
+            else 2 ** (fromIntegral (V.length x) - 1)
+      )
     $ V.filter (\x -> x `member` wins card) (mine card)
 
 aocFile :: Parser (Vector Card)

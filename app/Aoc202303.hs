@@ -77,7 +77,7 @@ matrixToEngineList mat = concat $ foldOuter $ foldInner <$> mat
 foldOuter :: [[(Engine, Int)]] -> [[(Engine, Position)]]
 foldOuter = snd . foldr aggEngineList (0, [])
 
-aggEngineList :: [(Engine, Int)] -> (Int, [[(Engine, Position)]]) ->  (Int, [[(Engine, Position)]])
+aggEngineList :: [(Engine, Int)] -> (Int, [[(Engine, Position)]]) -> (Int, [[(Engine, Position)]])
 aggEngineList engPosList (ind, engPos) =
   let mappedList = createPosition ind <$> engPosList
    in (ind + 1, mappedList : engPos)
