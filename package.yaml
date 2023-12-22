@@ -29,15 +29,15 @@ dependencies:
 - extra
 
 ghc-options:
-# - -Wall
-# - -Wcompat
-# - -Widentities
-# - -Wincomplete-record-updates
-# - -Wincomplete-uni-patterns
-# - -Wmissing-export-lists
-# - -Wmissing-home-modules
-# - -Wpartial-fields
-# - -Wredundant-constraints
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
 - -O2
 
 library:

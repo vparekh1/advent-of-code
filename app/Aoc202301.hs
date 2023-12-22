@@ -1,95 +1,63 @@
 module Aoc202301 (solve) where
 
 import Data.Char
-import Data.List
-import Data.Maybe
-import qualified Data.Ord as Ordering
-import qualified Data.Semigroup as Int
-import GHC.Base
-import GHC.Conc (numCapabilities)
-import System.IO
+import Parse
+import Text.Parsec
+  ( anyChar,
+    digit,
+    endOfLine,
+    lookAhead,
+    noneOf,
+    sepEndBy1,
+    string',
+    try,
+    (<|>),
+  )
+import Text.Parsec.ByteString (Parser, parseFromFile)
 
 solve :: IO ()
-solve = do
-  filecontent <- readFile "data/aoc1.txt"
-  --   Print without the lettered numbers
-  print "AOC 1: Without looking at the letters"
-  print $ sum <$> Prelude.mapM getNumber (lines filecontent)
-  print "AOC 2: While looking at the letters"
-  print $ sum $ map getNumberSecond (lines filecontent)
+solve =
+  do
+    f <- parseFromFile aocFile "data/aoc1.txt"
+    case f of
+      Left err -> print err
+      Right g -> do
+        putStrLn "AOC1:"
+        print $ sum $ num1 <$> g
+        putStrLn "AOC2:"
+        print $ sum $ num2 <$> g
 
-getNumber s = do
-  a <- firstNumber s
-  b <- firstNumber (reverse s)
-  return (10 * a + b)
+data Interesting = Num Int | Word String deriving (Eq, Show)
 
-firstNumber [] = Nothing
-firstNumber (x : xs)
-  | isDigit x = Just $ digitToInt x
-  | otherwise = firstNumber xs
+fromInteresting :: Interesting -> Int
+fromInteresting x = case x of
+  Num n -> n
+  Word n -> word2num n
 
-letteredNumbers = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+num1 :: [Interesting] -> Int
+num1 l = fromInteresting (head [x | x@(Num _) <- l]) * 10 + fromInteresting (last [x | x@(Num _) <- l])
 
-findString search strNum = findIndex (isPrefixOf $ letteredNumbers !! strNum) (tails search)
+num2 :: [Interesting] -> Int
+num2 l = fromInteresting (head l) * 10 + fromInteresting (last l)
 
-findStringR search strNum = findIndex (isPrefixOf $ reverse $ letteredNumbers !! strNum) (tails $ reverse search)
+aocFile :: Parser [[Interesting]]
+aocFile =
+  (do x <- parseLineList (noneOf " \n\r") (try parseInteresting); return (snd <$> x)) `sepEndBy1` endOfLine
 
-tFindString search strNum = (strNum, findString search strNum)
-
-tFindStringR search strNum = (strNum, findStringR search strNum)
-
-findNumber [] _ = Nothing
-findNumber (x : xs) num
-  | intToDigit num == x = Just 0
-  | otherwise = do
-      fn <- findNumber xs num
-      return (1 + fn)
-
-findNumberR :: String -> Int -> Maybe Int
-findNumberR = findNumber . reverse
-
-tFindNumber s n = (n, findNumber s n)
-
-tFindNumberR :: String -> Int -> (Int, Maybe Int)
-tFindNumberR s n = (n, findNumberR s n)
-
-minStrings str = tFindString str <$> [0 .. 9]
-
-minStringsR str = tFindStringR str <$> [0 .. 9]
-
-minNumber str = tFindNumber str <$> [0 .. 9]
-
-minNumberR str = tFindNumberR str <$> [0 .. 9]
-
-minStringValue str = minimumBy numberLess $ minStrings str
-
-minStringValueR str = minimumBy numberLess $ minStringsR str
-
-minNumValue str = minimumBy numberLess $ minNumber str
-
-minNumValueR str = minimumBy numberLess $ minNumberR str
-
-minOverallValue str =
-  let msv = minStringValue str
-      mnv = minNumValue str
-   in case numberLess msv mnv of
-        LT -> fst msv
-        EQ -> fst msv
-        GT -> fst mnv
-
-minOverallValueR str =
-  let msv = minStringValueR str
-      mnv = minNumValueR str
-   in case numberLess msv mnv of
-        LT -> fst msv
-        EQ -> fst msv
-        GT -> fst mnv
-
-getNumberSecond str = minOverallValue str * 10 + minOverallValueR str
-
-numberLess ma mb =
-  let ua = snd ma
-      ub = snd mb
-      a = fromMaybe 10000 ua
-      b = fromMaybe 10000 ub
-   in compareInt a b
+parseInteresting :: Parser Interesting
+parseInteresting = do
+  x <-
+    lookAhead $
+      (do Num . digitToInt <$> digit)
+        <|> (do x <- string' "zero"; return $ Word x)
+        <|> (do x <- string' "one"; return $ Word x)
+        <|> (do x <- string' "two"; return $ Word x)
+        <|> (do x <- string' "three"; return $ Word x)
+        <|> (do x <- string' "four"; return $ Word x)
+        <|> (do x <- string' "five"; return $ Word x)
+        <|> (do x <- string' "six"; return $ Word x)
+        <|> (do x <- string' "seven"; return $ Word x)
+        <|> (do x <- string' "eight"; return $ Word x)
+        <|> (do x <- string' "nine"; return $ Word x)
+  _ <- anyChar
+  return x
