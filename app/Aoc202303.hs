@@ -1,12 +1,14 @@
+module Aoc202303 (solve) where
+
 import Data.Char (digitToInt, toLower)
 import Data.Monoid
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
 
 -- Main function
-main :: IO ()
-main = do
-  engines <- parseFromFile aocFile "aoc3.txt"
+solve :: IO ()
+solve = do
+  engines <- parseFromFile aocFile "data/aoc3.txt"
   case engines of
     Left err -> print err
     Right e -> do

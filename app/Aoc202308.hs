@@ -1,5 +1,7 @@
 {-# LANGUAGE ViewPatterns #-}
 
+module Aoc202308 (solve) where
+
 import Data.HashMap.Strict as M
 import Text.Parsec
 import Text.Parsec.ByteString (Parser, parseFromFile)
@@ -7,9 +9,9 @@ import Data.ByteString as B
 import qualified Data.ByteString.Internal as BS (c2w, w2c)
 import Data.Vector as V
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc8.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc8.txt"
   case f of
     Left err -> print err
     Right e -> do

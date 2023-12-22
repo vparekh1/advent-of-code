@@ -1,3 +1,5 @@
+module Aoc202304 (solve) where
+
 import Control.Monad
 import Control.Monad.ST
 import Data.HashSet as Set
@@ -7,9 +9,9 @@ import Text.Parsec
 import Text.Parsec.String (Parser, parseFromFile)
 
 -- Main function
-main :: IO ()
-main = do
-  cards <- parseFromFile aocFile "aoc4.txt"
+solve :: IO ()
+solve = do
+  cards <- parseFromFile aocFile "data/aoc4.txt"
   case cards of
     Left err -> print err
     Right e -> do

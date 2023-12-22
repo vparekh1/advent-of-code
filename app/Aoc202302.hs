@@ -1,14 +1,16 @@
+module Aoc202302 (solve) where
+
 import Data.Char (toLower)
 import Data.Monoid
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
 
 -- Main function
-main :: IO ()
-main =
+solve :: IO ()
+solve =
   let elfBag = Bag {red = 12, green = 13, blue = 14}
    in do
-        bagGames <- parseFromFile aocFile "aoc2.txt"
+        bagGames <- parseFromFile aocFile "data/aoc2.txt"
         case bagGames of
           Left err -> print err
           Right bag -> do

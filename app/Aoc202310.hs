@@ -1,3 +1,5 @@
+module Aoc202310 (solve) where
+
 import Text.Parsec
 import Text.Parsec.ByteString (Parser, parseFromFile)
 import Data.Graph
@@ -6,9 +8,9 @@ import Data.HashSet as S
 import Data.Tuple.Extra
 import Debug.Trace
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc10.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc10.txt"
   case f of
     Left err -> print err
     Right e -> do

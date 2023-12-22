@@ -1,15 +1,19 @@
+{-# LANGUAGE ViewPatterns #-}
+
+module Aoc202306 (solve) where
+
 import Text.Parsec
 import Text.Parsec.String (Parser, parseFromFile)
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc6.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc6.txt"
   case f of
     Left err -> print err
     Right e -> do
       putStrLn "AOC6 Answer 1:"
       print $ product $ numOfOptions <$> e
-  g <- parseFromFile aocFile2 "aoc6.txt"
+  g <- parseFromFile aocFile2 "data/aoc6.txt"
   case g of
     Left err -> print err
     Right e -> do

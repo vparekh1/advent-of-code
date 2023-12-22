@@ -1,9 +1,11 @@
+module Aoc202309 (solve) where
+
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc9.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc9.txt"
   case f of
     Left err -> print err
     Right e -> do

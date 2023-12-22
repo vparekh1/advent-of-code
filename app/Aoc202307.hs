@@ -1,16 +1,18 @@
+module Aoc202307 (solve) where
+
 import Data.List
 import Text.Parsec
 import Text.Parsec.Text (Parser, parseFromFile)
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc7.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc7.txt"
   case f of
     Left err -> print err
     Right e -> do
       putStrLn "AOC3 Answer 1:"
       print $ sum $ mapHands <$> (zip [1..] $ sort $ e)
-  g <- parseFromFile aocFile2 "aoc7.txt"
+  g <- parseFromFile aocFile2 "data/aoc7.txt"
   case g of
     Left err -> print err
     Right e -> do

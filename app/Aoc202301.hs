@@ -1,4 +1,4 @@
-
+module Aoc202301 (solve) where
 
 import Data.Char
 import System.IO
@@ -9,9 +9,9 @@ import qualified Data.Semigroup as Int
 import GHC.Base
 import qualified Data.Ord as Ordering
 
-main :: IO ()
-main = do
-  filecontent <- readFile "./aoc1.txt"
+solve :: IO ()
+solve = do
+  filecontent <- readFile "data/aoc1.txt"
   --   Print without the lettered numbers
   print "AOC 1: Without looking at the letters"
   print $ sum <$> Prelude.mapM getNumber (lines filecontent)

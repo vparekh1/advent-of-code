@@ -1,5 +1,7 @@
 {-# LANGUAGE ViewPatterns #-}
 
+module Aoc202305 (solve) where
+
 import Data.Char (digitToInt, toLower)
 import Data.Monoid
 import Text.Parsec
@@ -9,15 +11,15 @@ import Data.Foldable as F
 
 data Smap = Smap {dest :: !Int, source :: !Int, range :: !Int} deriving (Show, Eq)
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc5.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc5.txt"
   case f of
     Left err -> print err
     Right e -> do
         putStrLn "AOC5 Answer 1:"
         print $ V.minimum $ (foldLocation (snd e)) <$> (fst e)
-  g <- parseFromFile aocFile2 "aoc5.txt"
+  g <- parseFromFile aocFile2 "data/aoc5.txt"
   case g of
     Left err -> print err
     Right e -> do

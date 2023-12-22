@@ -1,14 +1,16 @@
+module Aoc202311 (solve) where
+    
 import Text.Parsec
 import Text.Parsec.ByteString (Parser, parseFromFile)
 import Data.IntSet as S
-import Data.List
+import qualified Data.List as L
 import Data.Vector.Unboxed as V
 
 type Point = (Int, Int) 
 
-main :: IO ()
-main = do
-  f <- parseFromFile aocFile "aoc11.txt"
+solve :: IO ()
+solve = do
+  f <- parseFromFile aocFile "data/aoc11.txt"
   case f of
     Left err -> print err
     Right e -> do
@@ -30,7 +32,7 @@ emptys :: (Point -> Int) -> [(Point, Char)] -> Vector Int
 emptys fun l = 
     let nonemptyYs = (fun . fst) <$> l
         maxY = Prelude.maximum nonemptyYs
-    in V.fromList $ sort $ S.toList $ (S.fromRange (1,maxY)) `difference` (S.fromList nonemptyYs)
+    in V.fromList $ L.sort $ S.toList $ (S.fromList [1..maxY]) `difference` (S.fromList nonemptyYs)
 
 emptyY :: [(Point, Char)] -> Vector Int
 emptyY = emptys snd
@@ -38,7 +40,7 @@ emptyX :: [(Point, Char)] -> Vector Int
 emptyX = emptys fst
 
 pairs :: [a] -> [(a, a)]
-pairs l = [(x,y) | (x:ys) <- tails l, y <- ys]
+pairs l = [(x,y) | (x:ys) <- L.tails l, y <- ys]
 
 lolToMap :: (Num b1, Num a, Enum b1, Enum a) => [[b2]] -> [[((a, b1), b2)]]
 lolToMap l = fmap (\x -> 
@@ -51,7 +53,7 @@ aocFile :: Parser [(Point, Char)]
 aocFile = do
     x <- aocLine `sepEndBy1` endOfLine
     eof
-    return $ Prelude.filter (\x -> snd x == '#') $ Prelude.concat $ lolToMap x
+    return $ Prelude.filter (\c -> snd c == '#') $ Prelude.concat $ lolToMap x
 
 aocLine :: Parser [Char]
 aocLine = do
