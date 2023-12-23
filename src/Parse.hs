@@ -7,6 +7,7 @@ module Parse
     num2word,
     parseLineVector,
     printSolution,
+    parseGridVector,
     Point,
   )
 where
@@ -58,8 +59,13 @@ parseLineMap g i = do
 
 parseGrid :: Parser garbage -> Parser interesting -> Parser (HashMap Point interesting)
 parseGrid g i = do
-  line <- parseLineList g i `sepEndBy1` endOfLine
+  line <- parseLineList g i `sepEndBy1` try (do endOfLine; notFollowedBy endOfLine)
   return $ M.fromList $ parseListToMap line
+
+parseGridVector :: Parser garbage -> Parser interesting -> Parser (Vector (Vector interesting))
+parseGridVector g i = do
+  line <- parseLineVectorWithoutPos g i `sepEndBy1` try (do endOfLine; notFollowedBy endOfLine)
+  return $ V.fromList line
 
 parseLineVector :: Parser garbage -> Parser interesting -> Parser (Vector (Int, interesting))
 parseLineVector garbage interesting = V.fromList <$> parseLineList garbage interesting
@@ -74,6 +80,11 @@ parseLineList garbage interesting = do
         position <- getPosition
         return $ Just (sourceColumn position - 1, v)
   return $ Maybe.catMaybes x
+
+parseLineVectorWithoutPos :: Parser garbage -> Parser interesting -> Parser (Vector interesting)
+parseLineVectorWithoutPos garbage interesting = do
+  x <- many $ skipUntil garbage interesting
+  return $ V.catMaybes $ V.fromList x
 
 skipUntil :: Parser a -> Parser end -> Parser (Maybe end)
 skipUntil p end = scan
