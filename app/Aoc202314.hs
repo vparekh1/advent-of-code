@@ -1,8 +1,6 @@
 module Aoc202314 (solve) where
 
 import Data.Map as M
-import qualified Data.Maybe as Maybe
-import Debug.Trace
 import Parse
 import Text.Parsec
 import Text.Parsec.ByteString (Parser)
@@ -14,10 +12,10 @@ mspin :: Int -> [[Char]] -> [[Char]]
 mspin = go M.empty
   where
     go set count m
-      | count == 0 = traceShow m m
+      | count == 0 = m
       | otherwise = case set M.!? m of
           Nothing -> go (M.insert m count set) (count - 1) (spin m)
-          Just x -> traceShow (x, count, count `rem` (x - count)) mspin (count `rem` (x - count)) m
+          Just x -> mspin (count `rem` (x - count)) m
 
 spin :: [[Char]] -> [[Char]]
 spin = rollRight . rollDown . rollLeft . rollUp
