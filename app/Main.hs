@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Aoc202313 (solve)
+import Aoc202314 (solve)
 
 main :: IO ()
 main = solve

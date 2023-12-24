@@ -8,7 +8,9 @@ module Parse
     parseLineVector,
     printSolution,
     parseGridVector,
+    parseGridList,
     Point,
+    Matrix,
   )
 where
 
@@ -49,6 +51,8 @@ num2word n = numbersAsWords I.! n
 
 type Point = (Int, Int)
 
+type Matrix = Vector (Vector Char)
+
 parseListToMap :: [[(Int, a)]] -> [(Point, a)]
 parseListToMap = Prelude.concat . Prelude.zipWith (\i b -> (\x -> ((fst x, i), snd x)) <$> b) [0 ..]
 
@@ -66,6 +70,9 @@ parseGridVector :: Parser garbage -> Parser interesting -> Parser (Vector (Vecto
 parseGridVector g i = do
   line <- parseLineVectorWithoutPos g i `sepEndBy1` try (do endOfLine; notFollowedBy endOfLine)
   return $ V.fromList line
+
+parseGridList :: Parser garbage -> Parser interesting -> Parser [[interesting]]
+parseGridList g i = parseLineWithoutPos g i `sepEndBy1` try (do endOfLine; notFollowedBy endOfLine)
 
 parseLineVector :: Parser garbage -> Parser interesting -> Parser (Vector (Int, interesting))
 parseLineVector garbage interesting = V.fromList <$> parseLineList garbage interesting
@@ -85,6 +92,11 @@ parseLineVectorWithoutPos :: Parser garbage -> Parser interesting -> Parser (Vec
 parseLineVectorWithoutPos garbage interesting = do
   x <- many $ skipUntil garbage interesting
   return $ V.catMaybes $ V.fromList x
+
+parseLineWithoutPos :: Parser garbage -> Parser interesting -> Parser [interesting]
+parseLineWithoutPos garbage interesting = do
+  x <- many $ skipUntil garbage interesting
+  return $ Maybe.catMaybes x
 
 skipUntil :: Parser a -> Parser end -> Parser (Maybe end)
 skipUntil p end = scan
